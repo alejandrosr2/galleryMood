@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import useColor from "./useColor";
 
 const useCanvasColor = (imageSrc) => {
-  const [dominantColor, setDominantColor] = useState(null);
+  const { setDominantColor } = useColor();  
+  const [dominantColor, setLocalDominantColor] = useState(null);  
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -19,26 +21,31 @@ const useCanvasColor = (imageSrc) => {
 
       ctx.drawImage(img, 0, 0);
 
-      // Conseguir el color predominante de la imagen
+      // Obtención del color dominante
       const imageData = ctx.getImageData(0, 0, img.width, img.height);
       const data = imageData.data;
       let r = 0, g = 0, b = 0;
       const totalPixels = data.length / 4;
 
-      // Promedia todos los colores
+      // Promediamos los colores
       for (let i = 0; i < totalPixels; i++) {
         r += data[i * 4]; // R
         g += data[i * 4 + 1]; // G
         b += data[i * 4 + 2]; // B
       }
 
-      setDominantColor(`rgb(${Math.floor(r / totalPixels)}, ${Math.floor(g / totalPixels)}, ${Math.floor(b / totalPixels)})`);
+      const newDominantColor = `rgb(${Math.floor(r / totalPixels)}, ${Math.floor(g / totalPixels)}, ${Math.floor(b / totalPixels)})`;
+
+      if (newDominantColor !== dominantColor) {
+        setLocalDominantColor(newDominantColor);  
+        setDominantColor(newDominantColor);  
+      }
     };
 
     img.onerror = () => {
       console.log("Error cargando la imagen");
     };
-  }, [imageSrc]);
+  }, [imageSrc, dominantColor, setDominantColor]);
 
   return { dominantColor, canvasRef };
 };
